@@ -166,3 +166,11 @@ This class is not meant to be directly created by the user, it is returned by th
   * Size () *GET*
 
     > Gets the size of the uploaded file in bytes.
+
+  * Save( path )
+
+    > Saves the file to disk at the path specified with the current filename.
+
+  * Blob () *GET*
+
+    > Returns the binary blob of the file so you could, for instance, store it in a database.
