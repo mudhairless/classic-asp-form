@@ -68,6 +68,23 @@
             .Prop("step") = 1
         end with
 
+        set colorItem = new FormItem
+        with colorItem
+            .iType = iTypeColor
+            .Name = "favcolor"
+            .Label = "Favorite Color"
+        end with
+
+        set avatarItem = new FormItem
+        with avatarItem
+        	.itype = iTypeFile
+        	.Name = "avatar"
+        	.Label = "New Avatar"
+        	.Prop("accept") = "image/png,image/jpeg"
+        	.ValidateContentType = true
+        	.ValidationFailedText = "Invalid file type, must be png or jpg."
+        end with
+
         with myForm
             .Action = "/formtest"
             .Method = "post"
@@ -81,6 +98,8 @@
             .add listItem
             .add radioItem
             .add rangeItem
+            .add colorItem
+            .add avatarItem
         end with
 
         if(Request.TotalBytes > 0) then
@@ -100,6 +119,11 @@
 </head>
 <body>
     <%=myForm.display()%>
+    <p>
+    	<%if(isObject(myForm.Value("avatar"))) then%>
+    	You uploaded: <%=myForm.Value("avatar").Filename%>
+    	<%end if%>
+    </p>
 </body>
 </html>
 <%
