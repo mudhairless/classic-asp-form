@@ -32,10 +32,10 @@
 		Dim lngLoop
 		BStr2UStr = ""
 		For lngLoop = 1 to LenB(BStr)
-			BStr2UStr = BStr2UStr & Chr(AscB(MidB(BStr,lngLoop,1)))
+			BStr2UStr = BStr2UStr & Chr(AscB(MidB(BStr,lngLoop,1))) 
 		Next
 	End Function
-
+	
 	Private Function UStr2Bstr(UStr)
 		'Unicode string to Byte string conversion
 		Dim lngLoop
@@ -45,7 +45,7 @@
 			strChar = Mid(UStr, lngLoop, 1)
 			UStr2Bstr = UStr2Bstr & ChrB(AscB(strChar))
 		Next
-	End Function
+	End Function 
 
 	Private Function URLDecode(Expression)
 		Dim strSource, strTemp, strResult
@@ -68,57 +68,84 @@
 
 
 	Class FileItem
-
+	
 		Private m_strName
 		Private m_strContentType
 		Private m_strFileName
 		Private m_Blob
-
+		
 		Public Property Get Name()
 			Name = m_strName
 		End Property
-
+	  
 		Public Property Let Name(vIn)
 			m_strName = vIn
 		End Property
-
+	  
 		Public Property Get ContentType()
 			ContentType = m_strContentType
 		End Property
-
+	  
 		Public Property Let ContentType(vIn)
 			m_strContentType = vIn
 		End Property
 
+		public property Get Size()
+			Size = lenb(m_blob)
+		end property
+	  
 		Public Property Get FileName()
 			FileName = m_strFileName
 		End Property
-
+	  
 		Public Property Let FileName(vIn)
 			m_strFileName = vIn
 		End Property
-
+	  
 		Public Property Get Blob()
 			Blob = m_Blob
 		End Property
-
+	  
 		Public Property Let Blob(vIn)
 			m_Blob = vIn
 		End Property
-
-		Public Sub Save(Path)
+	
+		Public Sub Save(fnPath,fnUnique)
 			Dim objFSO, objFSOFile
-			Dim lngLoop
-			Set objFSO = _
-				Server.CreateObject("Scripting.FileSystemObject")
-				Set objFSOFile = objFSO.CreateTextFile( _
-					objFSO.BuildPath(Path, m_strFileName))
-					For lngLoop = 1 to LenB(m_Blob)
-						objFSOFile.Write Chr(AscB(MidB(m_Blob, lngLoop, 1)))
-					Next
-					objFSOFile.Close
-				set objFSOfile = nothing
-			set objFSO = nothing
+			Dim lngLoop, fnIsUnique, fnFinalPath, fnCnt
+			Set objFSO = Server.CreateObject("Scripting.FileSystemObject")
+				fnFinalPath = objFSO.BuildPath(fnPath, m_strFileName)
+				if(fnUnique) then
+					fnIsUnique = objFSO.FileExists(server.mappath(fnFinalPath))
+					fnCnt = 1
+					while not fnIsUnique
+						fnFinalPath = objFSO.BuildPath(fnPath, fnCnt & m_strFileName)
+						fnIsUnique = objFSO.FileExists(server.mappath(fnFinalPath))
+						fnCnt = fnCnt + 1
+					wend
+					m_strFileName = fnCnt & m_strFileName
+				end if
+
+				fnFinalPath = Server.MapPath(fnFinalPath)
+				set objFSOFile = Server.CreateObject("ADODB.Stream")
+					objFSOFile.mode = 3					
+					objFSOFile.open
+						for n = 1 to lenb(m_Blob)
+							objFSOFile.writetext midb(m_Blob,n,1)
+						next
+						objFSOFile.Position = 2
+						dim objBinfile
+						set objBinfile = Server.CreateObject("ADODB.Stream")
+							objBinFile.open
+								objBinfile.type = 1
+								objFSOFile.CopyTo objBinFile
+								'objFSOFile.flush
+								objBinFile.SaveToFile fnFinalpath,2
+							objBinFile.close
+						set objBinFile = nothing
+					objFSOFile.close
+				set objFSOFile = nothing
+			set objFSO = nothing	
 		End Sub
 	End Class
 
@@ -141,12 +168,11 @@
         end sub
 
         public function validate()
-
+			
             dim fnResulti
             fnResulti = true
 
             if(m_validate) then
-            response.write "<!-- validating: " & m_itemname & " -->"
                 fnResulti = falses
                 for each fnCheck in m_validation
 
@@ -160,7 +186,7 @@
 	                                            if(m_itemvalue = cstr(fnmchild(1))) then
 	                                                fnResulti = true
 	                                            else
-	                                                response.write "<!-- got: " & m_itemvalue & " value:" & fnmchild(1) &" -->"
+	                                                fnResulti = false
 	                                            end if
 	                                        else
 	                                            fnResulti = fnmchild.validate()
@@ -168,6 +194,10 @@
 	                                    end if
 	                                    if(fnResulti) then exit for
 	                                next
+	                                
+	                            case iTypeFile:
+	                                fnResulti = isObject(m_itemvalue)
+	                                
 	                            case else:
 	                                if(m_itemvalue <> "") then
 	                                    fnResulti = true
@@ -185,34 +215,27 @@
                                     fnResulti = fntestRegex.Test(m_itemvalue)
                                 set fntestRegex = nothing
                             end if
-
+                            
                         case "content-type"
                         	if(m_itemtype = iTypeFile) then
-                        		response.write "<!-- is file -->"
                         		if(m_properties.Exists("accept")) then
-                        		response.write "<!-- has accept -->"
                         			dim fnAccept,fnIpos
                         			fnAccept = m_properties.Item("accept")
                         			if(isObject(m_itemvalue)) then
-                        				response.write "<!-- is object -->"
                         				fnIpos = instr(fnAccept,m_itemvalue.ContentType)
                         				if(not isNull(fnIpos)) then
-                        				response.write "<!-- is " & fnIpos & " -->"
                         					if(fnIpos > 0) then
                         						fnResulti = true
                         					else
                         						fnResulti = false
                         					end if
                         				else
-                        					response.write "<!-- is null -->"
                         					fnResulti = false
                         				end if
                         			else
-                        				response.write "<!-- is not object -->"
                         				fnResulti = false
                         			end if
                         		else
-                        		response.write "<!-- no accept -->"
                         			fnResulti = false
                         		end if
                         	end if
@@ -420,7 +443,7 @@
                 m_properties(fnPname) = fnVal
             end if
         end property
-
+        
         public property get Prop ( fnPname )
         		if(not m_properties.Exists(fnPname)) then
         			Prop = ""
@@ -526,7 +549,7 @@
             end if
             m_validate = true
         end property
-
+        
         public property let ValidateContentType( fnBool )
         		if(not m_validation.Exists("content-type")) then
                 m_validation.add "content-type", fnBool
@@ -577,11 +600,11 @@
 			  Dim strName, strFileName, strContentType
 			  Dim strValue, strTemp
 			  Dim objFile
-
+							
 			  'Grab the entire contents of the Request as a Byte string
 			  lngTotalBytes = Request.TotalBytes
 			  strBRequest = Request.BinaryRead(lngTotalBytes)
-
+					
 			  'Find the first Boundary
 			  lngPosBeg = 1
 			  lngPosEnd = _
@@ -592,7 +615,7 @@
 			    lngPosBoundary = InStrB(1, strBRequest, strBBoundary)
 			  End If
 			  If strBBoundary = "" Then
-			  'The form must have been submitted *without*
+			  'The form must have been submitted *without* 
 			  'ENCTYPE="multipart/form-data"
 			  'But since we already called Request.BinaryRead,
 			  'we can no longer access the Request.Form collection,
@@ -637,7 +660,7 @@
 			    'Look for an element named 'filename'
 			    lngPosFileName = InStrB(lngPosBoundary, _
 			        strBRequest, UStr2BStr("filename="))
-			    'If found, we have a file,
+			    'If found, we have a file, 
 			    'otherwise it is a normal form element
 			    If lngPosFileName <> 0 And lngPosFileName < _
 			        InStrB(lngPosEnd, strBRequest, strBBoundary) Then
@@ -662,7 +685,7 @@
 			      strBContent = MidB(strBRequest, _
 			          lngPosBeg, lngPosEnd - lngPosBeg)
 			      If strFileName <> "" And strBContent <> "" Then
-			        'Create the File object,
+			        'Create the File object, 
 			        'and add it to the Files collection
 			        Set objFile = New FileItem
 			        objFile.Name = strName
@@ -726,7 +749,7 @@
             m_children = m_children + 1
             redim preserve m_formitems(m_children)
 
-
+            
             if(fnFormItem.m_itemtype= iTypeFile) then
             	m_form_enctype = "multipart/form-data"
             	if(m_form_files.Exists(fnFormItem.m_itemname)) then
@@ -737,7 +760,7 @@
             		fnFormItem.m_itemvalue = m_form_values.Item(fnFormItem.m_itemname)
             	end if
             end if
-
+            
             set m_formitems(m_children-1) = fnFormItem
         end sub
 
@@ -809,7 +832,7 @@
                 m_form_accept = m_form_accept & "," & fnFormAT
             end if
         end property
-
+        
         public property get Files ()
         		set Files = m_form_files
         end property
