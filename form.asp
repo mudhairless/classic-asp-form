@@ -359,9 +359,13 @@
 
                 case else:
                     fnResult =  fnResult & "<input type=""" & typeToText() & """ " & _
-                                "name=""" & m_itemname & """ " & _
-                                "placeholder=""" & m_itemplaceholder & """ " & _
-                                "tabindex=""" & m_itemtabindex & """ "
+                                "name=""" & m_itemname & """ "
+                    if(not isEmpty(m_itemplaceholder)) then
+						fnResult = fnResult & "placeholder=""" & m_itemplaceholder & """ "
+					end if
+					if(not isEmpty(m_itemtabindex)) then
+						fnResult = fnResult & "tabindex=""" & m_itemtabindex & """ "
+					end if
                     if(m_itemdisabled) then
                         fnResult = fnResult & "disabled=""disabled"" "
                     end if
@@ -378,7 +382,7 @@
                         else
                             fnResult = fnResult & "value=""True"" "
                         end if
-                    elseif(m_itemtype <> iTypeFile) then
+                    elseif(m_itemtype <> iTypeFile AND not isEmpty(m_itemvalue)) then
                         fnResult = fnResult & "value=""" & m_itemvalue & """ "
                     end if
 
