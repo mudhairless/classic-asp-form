@@ -104,6 +104,15 @@
 
         if(Request.TotalBytes > 0) then
             isValid = myForm.validate()
+            if(isValid) then
+            	'save the file to disk
+            	wassaved = myForm.Value("avatar").Save("/uploads", iUploadUnique)
+            	'uncomment to output the uploaded image
+            	'response.clear
+            	'response.AddHeader "Content-Type",myForm.Value("avatar").ContentType
+            	'response.binarywrite myForm.Value("avatar").Blob
+            	'response.end
+            end if
         end if
 
         %>

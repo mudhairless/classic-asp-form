@@ -167,9 +167,9 @@ This class is not meant to be directly created by the user, it is returned by th
 
     > Gets the size of the uploaded file in bytes.
 
-  * Save( path )
+  * Save( path, forceUnique )
 
-    > Saves the file to disk at the path specified with the current filename.
+    > Saves the file to disk at the path specified with the current filename. If forceUnique is set to iUploadOverwrite the file is saved with the current filename overwriting any existing file. If forceUnique is set to iUploadUnique, the file is saved with a unique name and the FileName property is updated appropriately
 
   * Blob () *GET*
 
