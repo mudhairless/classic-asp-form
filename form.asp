@@ -729,12 +729,30 @@
 
             dim fnResultf
 
-            fnResultf = "<form name=""" & m_form_name & """ id=""" & m_form_id & """ enctype=""" & m_form_enctype & """ method=""" & m_form_method & """ accept-charset=""" & m_form_charsets & """ accept=""" & m_form_accept & """"
+            fnResultf = "<form "
+            if(not isEmpty(m_form_name)) then
+            	fnResultf = fnResultf & "name=""" & m_form_name & """ "
+            end if
+            if(not isEmpty(m_form_id)) then
+            	fnResultf = fnResultf & "id=""" & m_form_id & """ "
+            end if
+            if(not isEmpty(m_form_enctype)) then
+            	fnResultf = fnResultf & "enctype=""" & m_form_enctype & """ "
+            end if
+            if(not isEmpty(m_form_method)) then
+            	fnResultf = fnResultf & "method=""" & m_form_method & """ "
+            end if
+            if(not isEmpty(m_form_charsets)) then
+            	fnResultf = fnResultf & "accept-charset=""" & m_form_charsets & """ "
+            end if
+            if(not isEmpty(m_form_accept)) then
+            	fnResultf = fnResultf & "accept=""" & m_form_accept & """ "
+            end if
 
             if(m_form_action <> "") then
-                fnResultf = fnResultf & " action=""" & m_form_action & """"
+                fnResultf = fnResultf & "action=""" & m_form_action & """"
             else
-                fnResultf = fnResultf & " action=""" & Request.ServerVariables("URL") & """"
+                fnResultf = fnResultf & "action=""" & Request.ServerVariables("URL") & """"
             end if
 
             fnResultf = fnResultf & ">" & vbCRLF
